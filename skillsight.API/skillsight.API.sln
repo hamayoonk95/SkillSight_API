@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.7.34221.43
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "skillsight.API", "skillsight.API.csproj", "{4CD8A3E8-BC59-4E23-BE63-0BD7CEDC6AED}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4CD8A3E8-BC59-4E23-BE63-0BD7CEDC6AED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4CD8A3E8-BC59-4E23-BE63-0BD7CEDC6AED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4CD8A3E8-BC59-4E23-BE63-0BD7CEDC6AED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4CD8A3E8-BC59-4E23-BE63-0BD7CEDC6AED}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DB20684A-49F9-4868-A679-307CED6BD6E1}
+	EndGlobalSection
+EndGlobal
