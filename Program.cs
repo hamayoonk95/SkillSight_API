@@ -26,13 +26,11 @@ public class Program
         });
 
         // Retrieving database credentials from configuration
-        var userId = builder.Configuration["DatabaseCredentials:UserId"];
-        var password = builder.Configuration["DatabaseCredentials:Password"];
+        // var userId = builder.Configuration["DatabaseCredentials:UserId"];
+        // var password = builder.Configuration["DatabaseCredentials:Password"];
 
         // Creating and configuring the database connection string
-        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-            .Replace("USERID", userId)
-            .Replace("PASSWORD", password);
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
         // Adding DbContext to the services container with MySQL configuration
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
