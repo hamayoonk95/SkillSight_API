@@ -1,44 +1,59 @@
 using Microsoft.EntityFrameworkCore;
 using skillsight.API.Data;
 
-namespace skillsight.API
+namespace skillsight.API;
+public class Program
 {
-    public class Program
+    // Entry point of the application
+    public static void Main(string[] args)
     {
-        public static void Main(string[] args)
+        // Creating a builder for the web application
+        var builder = WebApplication.CreateBuilder(args);
+
+        // Adding controller services to the container
+        builder.Services.AddControllers();
+
+        // Configuring CORS (Cross-Origin Resource Sharing) to allow all origins, methods, and headers
+        builder.Services.AddCors(options =>
         {
-            var builder = WebApplication.CreateBuilder(args);
+            options.AddPolicy("AllowAll", builder =>
+            {
+                builder
+                    .AllowAnyOrigin()
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+        });
 
-            // Add services to the container.
+        // Retrieving database credentials from configuration
+        var userId = builder.Configuration["DatabaseCredentials:UserId"];
+        var password = builder.Configuration["DatabaseCredentials:Password"];
 
-            builder.Services.AddControllers();
+        // Creating and configuring the database connection string
+        var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+            .Replace("USERID", userId)
+            .Replace("PASSWORD", password);
 
-            var userId = builder.Configuration["DatabaseCredentials:UserId"];
-            var password = builder.Configuration["DatabaseCredentials:Password"];
+        // Adding DbContext to the services container with MySQL configuration
+        builder.Services.AddDbContext<ApplicationDbContext>(options =>
+            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
-            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                .Replace("USERID", userId)
-                .Replace("PASSWORD", password);
+        // Building the web application
+        var app = builder.Build();
 
-            // builder.Services.AddDbContext<ApplicationDbContext>(options =>
-            // options.UseMySql(builder.Configuration.GetConnectionString("DefaultConnection"),
-            // new MySqlServerVersion(new Version(8, 0, 27))));
+        // Enforces HTTPS redirection
+        app.UseHttpsRedirection();
 
-            builder.Services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
+        // Adds authorization middleware
+        app.UseAuthorization();
 
-            var app = builder.Build();
+        // Enabling CORS with the specified policy
+        app.UseCors("AllowAll");
 
-            // Configure the HTTP request pipeline.
+        // Maps controller endpoints
+        app.MapControllers();
 
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
-
-            app.MapControllers();
-
-            app.Run();
-        }
+        // Runs the web application
+        app.Run();
     }
 }
