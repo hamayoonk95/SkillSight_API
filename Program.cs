@@ -25,10 +25,6 @@ public class Program
             });
         });
 
-        // Retrieving database credentials from configuration
-        // var userId = builder.Configuration["DatabaseCredentials:UserId"];
-        // var password = builder.Configuration["DatabaseCredentials:Password"];
-
         // Creating and configuring the database connection string
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
