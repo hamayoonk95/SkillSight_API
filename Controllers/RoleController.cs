@@ -7,7 +7,9 @@ using skillsight.API.DTOs;
 namespace skillsight.API.Controllers;
 
 // RolesController handles role-related API requests
+// Attribute 'ApiController' is used to denote a controller with API-specific functionalities
 [ApiController]
+// Attribute 'Route' defines the route template for this controller
 [Route("api/[controller]")]
 public class RolesController : ControllerBase
 {
@@ -34,6 +36,7 @@ public class RolesController : ControllerBase
             })
             .ToListAsync();
 
+        // Return the fetched roles as an HTTP 200 OK response
         return Ok(roles);
     }
 
@@ -42,11 +45,16 @@ public class RolesController : ControllerBase
     [HttpGet("{RoleID}/skills")]
     public async Task<IActionResult> GetAllSkillsByRoleId(int roleId)
     {
-        // Fetch skills associated with the given role ID
+        // Calculate the cutoff date as six months ago from the current date
+        int cutOffPeriod = -6;
+        DateTime cutOffDate = DateTime.Now.AddMonths(cutOffPeriod);
+
+        // Fetch skills associated with the given role ID where the role has job postings after the cutoff date
         var roleSkills = await _context.RoleSkills
             .Where(rs => rs.RoleId == roleId)
             .Include(rs => rs.Skill)
-            .ThenInclude(s => s.Type)
+            .Include(rs => rs.Role)
+            .ThenInclude(role => role.JobPostings.Where(jp => jp.DateScraped >= cutOffDate))
             .Select(rs => new RoleSkillDTO
             {
                 Skill = new SkillDTO
@@ -59,7 +67,7 @@ public class RolesController : ControllerBase
                         TypeName = rs.Skill.Type.TypeName
                     }
                 },
-                Frequency = rs.Frequency
+                Frequency = rs.Frequency,
             })
             .ToListAsync();
 
@@ -68,7 +76,36 @@ public class RolesController : ControllerBase
         {
             return NotFound($"No skills found for role ID {roleId}.");
         }
-
+        
+        // Return the fetched skills as an HTTP 200 OK response.
         return Ok(roleSkills);
     }
+
+
+    // GET endpoint to retrieve job information
+    // Route: api/roles/{RoleID}/jobInfo
+    [HttpGet("{RoleID}/jobInfo")]
+    public async Task<IActionResult> GetJobInfoByRoleId(int roleId)
+    {
+        
+        // Calculate the cutoff date as six months ago from the current date
+        int cutOffPeriod = -6;
+        DateTime cutOffDate = DateTime.Now.AddMonths(cutOffPeriod);
+        
+        // Fetch jobs count for a role by a particular roleId after a cutoff date
+        var jobPostingsCount = await _context.JobPostings
+            .Where(jp => jp.RoleId == roleId && jp.DateScraped >= cutOffDate)
+            .CountAsync();
+
+        // Map cutOffDate and jobCount to JobInfoDTO
+        var jobInfo = new JobInfoDTO
+        {
+            CutOffDate = cutOffDate,
+            JobPostingsCount = jobPostingsCount
+        };
+
+        // Return the fetched count
+        return Ok(jobInfo);
+    }
+
 }
