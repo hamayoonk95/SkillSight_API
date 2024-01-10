@@ -42,8 +42,8 @@ public class RolesController : ControllerBase
 
     // GET endpoint to retrieve skills by role ID
     // Route: api/roles/{RoleID}/skills
-    [HttpGet("{RoleID}/skills")]
-    public async Task<IActionResult> GetAllSkillsByRoleId(int roleId)
+    [HttpGet("{RoleID}/skills/{Category}")]
+    public async Task<IActionResult> GetAllSkillsByRoleId(int roleId, string category)
     {
         // Calculate the cutoff date as six months ago from the current date
         int cutOffPeriod = -6;
@@ -51,7 +51,7 @@ public class RolesController : ControllerBase
 
         // Fetch skills associated with the given role ID where the role has job postings after the cutoff date
         var roleSkills = await _context.RoleSkills
-            .Where(rs => rs.RoleId == roleId)
+            .Where(rs => rs.RoleId == roleId && rs.Skill.Type.TypeName.ToLower() == category.ToLower())
             .Include(rs => rs.Skill)
             .Include(rs => rs.Role)
             .ThenInclude(role => role.JobPostings.Where(jp => jp.DateScraped >= cutOffDate))
@@ -71,14 +71,17 @@ public class RolesController : ControllerBase
             })
             .ToListAsync();
 
+        var topSkills = roleSkills.GroupBy(rs => rs.Skill.Type.Id).Select(g => g.OrderByDescending(rs => rs.Frequency).Take(20)).SelectMany(g => g.ToList());
+
+
         // Return NotFound if no skills are associated with the role ID
         if (roleSkills == null || !roleSkills.Any())
         {
-            return NotFound($"No skills found for role ID {roleId}.");
+            return Ok(new List<RoleSkillDTO>());
         }
-        
+
         // Return the fetched skills as an HTTP 200 OK response.
-        return Ok(roleSkills);
+        return Ok(topSkills);
     }
 
 
@@ -87,11 +90,11 @@ public class RolesController : ControllerBase
     [HttpGet("{RoleID}/jobInfo")]
     public async Task<IActionResult> GetJobInfoByRoleId(int roleId)
     {
-        
+
         // Calculate the cutoff date as six months ago from the current date
         int cutOffPeriod = -6;
         DateTime cutOffDate = DateTime.Now.AddMonths(cutOffPeriod);
-        
+
         // Fetch jobs count for a role by a particular roleId after a cutoff date
         var jobPostingsCount = await _context.JobPostings
             .Where(jp => jp.RoleId == roleId && jp.DateScraped >= cutOffDate)
