@@ -12,6 +12,10 @@ public partial class User
     [Column("id")]
     public int Id { get; set; }
 
+    // Foreign key for the JobRole
+    [Column("jobrole_id")]
+    public int JobRoleId { get; set; }
+
     // First name field
     [Column("firstname")]
     [StringLength(50)]
@@ -37,11 +41,13 @@ public partial class User
     [StringLength(255)]
     public required string Password { get; set; }
 
+    // Navigation property for JobRole
+    [ForeignKey("JobRoleId")]
+    [InverseProperty("Users")]
+    public virtual JobRole? JobRole { get; set; }
+
     // Collection navigation property for Projects related to the User
     [InverseProperty("User")]
     public virtual ICollection<Project> Projects { get; } = new List<Project>();
 
-    // Collection navigation property for UserSkills related to the User
-    [InverseProperty("User")]
-    public virtual ICollection<UserSkill> UserSkills { get; } = new List<UserSkill>();
 }

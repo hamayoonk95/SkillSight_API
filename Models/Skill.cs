@@ -31,8 +31,4 @@ public partial class Skill
     [ForeignKey("TypeId")]
     [InverseProperty("Skills")]
     public virtual required SkillType Type { get; set; }
-
-    // Collection navigation property for UserSkills related to the Skill
-    [InverseProperty("Skill")]
-    public virtual ICollection<UserSkill> UserSkills { get; } = new List<UserSkill>();
 }

@@ -21,6 +21,10 @@ public partial class JobRole
     [InverseProperty("Role")]
     public virtual ICollection<JobPosting> JobPostings { get; } = new List<JobPosting>();
 
+    // Collection navigation property for Users related to the JobRole
+    [InverseProperty("JobRole")]
+    public virtual ICollection<User> Users { get; } = new List<User>();
+
     // Collection navigation property for Projects related to the JobRole
     [InverseProperty("Role")]
     public virtual ICollection<Project> Projects { get; } = new List<Project>();
