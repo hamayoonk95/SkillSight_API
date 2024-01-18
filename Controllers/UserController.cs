@@ -29,9 +29,14 @@ public class UsersController : ControllerBase
         var usernameExists = _context.Users.Any(u => u.Username == userDTO.Username);
         var emailExists = _context.Users.Any(u => u.Email == userDTO.Email);
 
-        if (usernameExists || emailExists)
+        if (usernameExists)
         {
-            return BadRequest(new { message = "Username or Email already exists." });
+            return BadRequest(new { message = "Username already exists." });
+        }
+
+        if (emailExists)
+        {
+            return BadRequest(new { message = "Email already exists." });
         }
 
 
@@ -52,4 +57,23 @@ public class UsersController : ControllerBase
         // Return success message as an HTTP 200 OK response
         return Ok(new { message = "User registered successfully" });
     }
+
+    [HttpPost("login")]
+    public async Task<IActionResult> LoginUser([FromBody] UserLoginDTO userDTO)
+    {
+        var user = _context.Users.FirstOrDefault(u => u.Username == userDTO.Username);
+        if (user == null)
+        {
+            return BadRequest(new { message = "Wrong Username or Password." });
+        }
+
+        bool validPassword = Verify(userDTO.Password, user.Password);
+        if (!validPassword)
+        {
+            return BadRequest(new { message = "Wrong Username or Password." });
+        }
+
+        return Ok(new { message = "Logged In Successfully!" });
+    }
+
 }
