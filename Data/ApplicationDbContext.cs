@@ -22,7 +22,7 @@ public partial class ApplicationDbContext : DbContext
 
     // DbSet properties representing tables in the database.
     // Efmigrationshistories table for Entity Framework migrations history.
-    public virtual DbSet<Efmigrationshistory> Efmigrationshistories { get; set; }
+    // public virtual DbSet<Efmigrationshistory> Efmigrationshistories { get; set; }
 
     // JobPostings table holding data about job postings
     public virtual DbSet<JobPosting> JobPostings { get; set; }
@@ -44,9 +44,6 @@ public partial class ApplicationDbContext : DbContext
 
     // Users table for user information.
     public virtual DbSet<User> Users { get; set; }
-
-    // UserSkills table tracking skills associated with users.
-    public virtual DbSet<UserSkill> UserSkills { get; set; }
 
     // protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     //     => optionsBuilder.UseMySql("server=localhost;port=3306;user=hamayoon;password=hamayoon;database=skill_data", Microsoft.EntityFrameworkCore.ServerVersion.Parse("8.0.33-mysql"));
