@@ -104,7 +104,7 @@ public class RolesController : ControllerBase
         var jobInfo = new JobInfoDTO
         {
             CutOffDate = cutOffDate,
-            JobPostingsCount = jobPostingsCount
+            JobCount = jobPostingsCount
         };
 
         // Return the fetched count

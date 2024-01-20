@@ -33,5 +33,5 @@ public class JobInfoDTO
     // CutOffDate for the jobs fetched
     public DateTime CutOffDate { get; set; }
     // count for the jobs for a role
-    public int JobPostingsCount { get; set; }
+    public int JobCount { get; set; }
 }

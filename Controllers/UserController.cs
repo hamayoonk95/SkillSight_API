@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Mvc;
 using skillsight.API.Data;
 using skillsight.API.Models;
+using skillsight.API.Services;
+using skillsight.API.DTOs;
 
 using static BCrypt.Net.BCrypt;
 
@@ -16,11 +18,13 @@ public class UsersController : ControllerBase
 {
     // Database context for data access
     private readonly ApplicationDbContext _context;
+    private readonly AuthService _authService;
 
     // Constructor to inject the database context
-    public UsersController(ApplicationDbContext context)
+    public UsersController(ApplicationDbContext context, AuthService authService)
     {
         _context = context;
+        _authService = authService;
     }
 
     [HttpPost("register")]
@@ -61,19 +65,25 @@ public class UsersController : ControllerBase
     [HttpPost("login")]
     public async Task<IActionResult> LoginUser([FromBody] UserLoginDTO userDTO)
     {
-        var user = _context.Users.FirstOrDefault(u => u.Username == userDTO.Username);
-        if (user == null)
+        // var user = _context.Users.FirstOrDefault(u => u.Username == userDTO.Username);
+        // if (user == null)
+        // {
+        //     return BadRequest(new { message = "Wrong Username or Password." });
+        // }
+        var tokenDto = _authService.Authenticate(userDTO.Username, userDTO.Password);
+        if (tokenDto == null)
         {
             return BadRequest(new { message = "Wrong Username or Password." });
         }
 
-        bool validPassword = Verify(userDTO.Password, user.Password);
-        if (!validPassword)
-        {
-            return BadRequest(new { message = "Wrong Username or Password." });
-        }
+        return Ok(new { message = "Logged In Successfully!", token = tokenDto.AccessToken });
+    }
 
-        return Ok(new { message = "Logged In Successfully!" });
+    [HttpPost("logout")]
+    public IActionResult Logout()
+    {
+        // Implement Logic
+        return Ok(new { message = "Logged out successfully!" });
     }
 
 }
