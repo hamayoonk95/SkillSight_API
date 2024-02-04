@@ -16,16 +16,23 @@ public class Program
         var builder = WebApplication.CreateBuilder(args);
 
 
-        // Bind JWT settings
+        // Bind JWT settings from configuration and add it to services
         var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>();
+        if (jwtSettings == null)
+        {
+            throw new InvalidCastException("Jwt settings not found");
+        }
         builder.Services.AddSingleton(jwtSettings);
+
+        // Register services and interfaces
+        builder.Services.AddScoped<IRoleMatchingService, RoleMatchingService>();
+        builder.Services.AddSingleton<TokenService>();
+        builder.Services.AddScoped<AuthService>();
 
         // Adding controller services to the container
         builder.Services.AddControllers();
 
-        builder.Services.AddSingleton<TokenService>();
-        builder.Services.AddScoped<AuthService>();
-        // Add JWT auth
+        // Configure JWT authentication
         builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -41,7 +48,7 @@ public class Program
         };
     });
 
-        // Configuring CORS (Cross-Origin Resource Sharing) to allow all origins, methods, and headers
+        // Configure CORS (Cross-Origin Resource Sharing) to allow all origins, methods, and headers
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowAll", builder =>
@@ -53,10 +60,8 @@ public class Program
             });
         });
 
-        // Creating and configuring the database connection string
+        // Configure the database connection string and add DbContext
         var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-        // Adding DbContext to the services container with MySQL configuration
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 
@@ -65,14 +70,11 @@ public class Program
 
         // Enabling CORS with the specified policy
         app.UseCors("AllowAll");
-
         // Enforces HTTPS redirection
         app.UseHttpsRedirection();
-
         // Adds authorization middleware
         app.UseAuthorization();
         app.UseAuthentication();
-
         // Maps controller endpoints
         app.MapControllers();
 

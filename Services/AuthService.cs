@@ -3,44 +3,48 @@ using System.Security.Claims;
 using skillsight.API.DTOs;
 using static BCrypt.Net.BCrypt;
 
-namespace skillsight.API.Services
+namespace skillsight.API.Services;
+
+// AuthService handles authentication related functionalities.
+public class AuthService
 {
-    public class AuthService
+    // Database context for accessing user data.
+    private readonly ApplicationDbContext _context;
+    // TokenService for handling JWT token generation.
+    private readonly TokenService _tokenService;
+
+    // Constructor injecting ApplicationDbContext and TokenService.
+    public AuthService(ApplicationDbContext context, TokenService tokenService)
     {
-        private readonly ApplicationDbContext _context;
-        private readonly TokenService _tokenService;
-        // Inject other services like UserService to interact with the user data.
+        _context = context;
+        _tokenService = tokenService;
+    }
 
-        public AuthService(ApplicationDbContext context, TokenService tokenService)
+    // Method to authenticate a user with username and password.
+    public UserTokenDTO? Authenticate(string username, string password)
+    {
+        // // Fetch the user from the database based on the username
+        var user = _context.Users.SingleOrDefault(u => u.Username == username);
+
+        // Validate the user's password. If user is null or password verification fails, return null.
+        if (user == null || !Verify(password, user.Password))
         {
-            _context = context;
-            _tokenService = tokenService;
+            return null; // Returning null indicates invalid credentials.
         }
 
-        public UserTokenDTO Authenticate(string username, string password)
+        // Prepare claims for the token.
+        var claims = new List<Claim>
         {
-            // Validate user credentials
-            var user = _context.Users.SingleOrDefault(u => u.Username == username);
-            if (user == null || !Verify(password, user.Password))
-            {
-                return null; // or handle invalid credentials appropriately
-            }
+            new Claim(ClaimTypes.Name, username)
+        };
 
-            var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.Name, username)
-            };
+        // Generate an access token using the TokenService.
+        var accessToken = _tokenService.GenerateAccessToken(claims);
 
-            var accessToken = _tokenService.GenerateAccessToken(claims);
-            // var refreshToken = _tokenService.GenerateRefreshToken(); 
-
-            return new UserTokenDTO
-            {
-                AccessToken = accessToken,
-                // RefreshToken = refreshToken
-            };
-        }
-
-        // Method to handle refreshing tokens can be added here.
+        // Return the generated access token encapsulated in UserTokenDTO.
+        return new UserTokenDTO
+        {
+            AccessToken = accessToken,
+        };
     }
 }
