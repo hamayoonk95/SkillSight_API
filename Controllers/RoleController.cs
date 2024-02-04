@@ -6,10 +6,11 @@ using skillsight.API.DTOs;
 // Namespace grouping API controllers
 namespace skillsight.API.Controllers;
 
-// RolesController handles role-related API requests
-// Attribute 'ApiController' is used to denote a controller with API-specific functionalities
+/*********
+    RolesController handles role-related API requests
+    Attribute 'ApiController' is used to denote a controller with API-specific functionalities
+**********/
 [ApiController]
-// Attribute 'Route' defines the route template for this controller
 [Route("api/[controller]")]
 public class RolesController : ControllerBase
 {
@@ -22,8 +23,11 @@ public class RolesController : ControllerBase
         _context = context;
     }
 
-    // GET endpoint to retrieve all roles
-    // Route: api/roles/allRoles
+
+    /******** 
+        Retrieves all job roles from the database.
+        Endpoint/Route: GET api/roles/allRoles
+    ********/
     [HttpGet("allRoles")]
     public async Task<IActionResult> GetAllRoles()
     {
@@ -40,8 +44,10 @@ public class RolesController : ControllerBase
         return Ok(roles);
     }
 
-    // GET endpoint to retrieve skills by role ID
-    // Route: api/roles/{RoleID}/skills
+    /******** 
+    Retrieves skills for a specific role ID, filtered by category.
+    Endpoint/Route: GET api/roles/{RoleID}/skills/{Category}
+    ********/
     [HttpGet("{RoleID}/skills/{Category}")]
     public async Task<IActionResult> GetAllSkillsByRoleId(int roleId, string category)
     {
@@ -52,8 +58,8 @@ public class RolesController : ControllerBase
         // Fetch skills associated with the given role ID where the role has job postings after the cutoff date
         var roleSkills = await _context.RoleSkills
             .Where(rs => rs.RoleId == roleId && rs.Skill.Type.TypeName.ToLower() == category.ToLower())
-            .Include(rs => rs.Skill)
-            .Include(rs => rs.Role)
+            .Include(rs => rs.Skill) // Include Skill details
+            .Include(rs => rs.Role) // Include Role details
             .ThenInclude(role => role.JobPostings.Where(jp => jp.DateScraped >= cutOffDate))
             .Select(rs => new RoleSkillDTO
             {
@@ -71,22 +77,17 @@ public class RolesController : ControllerBase
             })
             .ToListAsync();
 
+        // Gets the top 20 skills from Role Skills
         var topSkills = roleSkills.GroupBy(rs => rs.Skill.Type.Id).Select(g => g.OrderByDescending(rs => rs.Frequency).Take(20)).SelectMany(g => g.ToList());
 
-
-        // Return NotFound if no skills are associated with the role ID
-        if (roleSkills == null || !roleSkills.Any())
-        {
-            return Ok(new List<RoleSkillDTO>());
-        }
-
         // Return the fetched skills as an HTTP 200 OK response.
-        return Ok(topSkills);
+        return roleSkills.Any() ? Ok(topSkills) : Ok(new List<RoleDTO>());
     }
 
-
-    // GET endpoint to retrieve job information
-    // Route: api/roles/{RoleID}/jobInfo
+    /******** 
+    Retrieves job posting information for a specific role ID.
+    Endpoint/Route: GET api/roles/{RoleID}/jobInfo
+    ********/
     [HttpGet("{RoleID}/jobInfo")]
     public async Task<IActionResult> GetJobInfoByRoleId(int roleId)
     {
