@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+
 using skillsight.API.Data;
 using skillsight.API.DTOs;
 using skillsight.API.Models;
@@ -45,13 +47,16 @@ public class RoleMatchingController : ControllerBase
         // Retrieves Top 3 skills per category per job role from the Database
         var topSkillsByCategory = await GetTopSkillsByCategoryAsync(jobRole.Id);
 
+        // Deserialize the JSON details property into JobRoleDetailsDTO
+        JobRoleDetailsDTO jobRoleDetails = JsonSerializer.Deserialize<JobRoleDetailsDTO>(jobRole.Details) ?? new JobRoleDetailsDTO();
+
         // Create the Response DTO
         var response = new MatchedRoleResponseDTO
         {
             Role = jobRole.RoleTitle,
+            RoleDetails = jobRoleDetails,
             TopSkills = topSkillsByCategory
         };
-
         // Return response
         return Ok(response);
     }

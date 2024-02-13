@@ -17,6 +17,9 @@ public partial class JobRole
     [StringLength(50)]
     public required string RoleTitle { get; set; }
 
+    [Column("details", TypeName = "json")]
+    public required string Details { get; set; }
+
     // Collection navigation property for JobPostings related to the JobRole
     [InverseProperty("Role")]
     public virtual required ICollection<JobPosting> JobPostings { get; set; }
