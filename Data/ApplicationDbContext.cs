@@ -30,9 +30,6 @@ public partial class ApplicationDbContext : DbContext
     // JobRoles table containing information about different job roles.
     public virtual DbSet<JobRole> JobRoles { get; set; }
 
-    // Projects table storing project-related data.
-    public virtual DbSet<Project> Projects { get; set; }
-
     // RoleSkills table mapping skills to job roles.
     public virtual DbSet<RoleSkill> RoleSkills { get; set; }
 

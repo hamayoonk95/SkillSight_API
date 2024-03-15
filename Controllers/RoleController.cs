@@ -33,6 +33,7 @@ public class RolesController : ControllerBase
     {
         // Fetch roles from database and map to RoleDTO
         var roles = await _context.JobRoles
+            .AsNoTracking()
             .Select(r => new RoleDTO
             {
                 Id = r.Id,
@@ -51,13 +52,17 @@ public class RolesController : ControllerBase
     [HttpGet("{RoleID}/skills/{Category}")]
     public async Task<IActionResult> GetAllSkillsByRoleId(int roleId, string category, [FromQuery] DateTime? startDate, [FromQuery] DateTime? endDate)
     {
-        // Fetch skills associated with the given role ID where the role has job postings after the cutoff date
-        var roleSkills = await _context.RoleSkills
-            .Where(rs => rs.RoleId == roleId && rs.Skill.Type.TypeName.ToLower() == category.ToLower())
-            .Include(rs => rs.Skill) // Include Skill details
-            .Include(rs => rs.Role) // Include Role details
-            .ThenInclude(role => role.JobPostings)
-            .Where(rs => rs.Role.JobPostings.Any(jp => jp.DateScraped >= startDate && jp.DateScraped <= endDate))
+        var query = _context.RoleSkills
+        .Where(rs => rs.RoleId == roleId && rs.Skill.Type.TypeName == category);
+
+        if (startDate.HasValue && endDate.HasValue)
+        {
+            query = query.Where(rs => rs.DateScraped >= startDate.Value && rs.DateScraped <= endDate.Value);
+        }
+
+        var roleSkills = await query
+            .OrderByDescending(rs => rs.Frequency)
+            .Take(20)
             .Select(rs => new RoleSkillDTO
             {
                 Skill = new SkillDTO
@@ -70,18 +75,11 @@ public class RolesController : ControllerBase
                         TypeName = rs.Skill.Type.TypeName
                     }
                 },
-                Frequency = rs.Frequency,
+                Frequency = rs.Frequency
             })
             .ToListAsync();
 
-        // Gets the top 20 skills from Role Skills
-        var topSkills = roleSkills
-            .GroupBy(rs => rs.Skill.Type.Id)
-            .Select(g => g.OrderByDescending(rs => rs.Frequency).Take(20))
-            .SelectMany(g => g.ToList());
-
-        // Return the fetched skills as an HTTP 200 OK response.
-        return roleSkills.Any() ? Ok(topSkills) : Ok(new List<RoleSkillDTO>());
+        return Ok(roleSkills);
     }
 
     /******** 
@@ -91,12 +89,7 @@ public class RolesController : ControllerBase
     [HttpGet("{RoleID}/jobInfo")]
     public async Task<IActionResult> GetJobInfoByRoleId(int roleId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
-
-        // Calculate the cutoff date as six months ago from the current date
-        // int cutOffPeriod = -6;
-        // DateTime cutOffDate = DateTime.Now.AddMonths(cutOffPeriod);
-
-        // Fetch jobs count for a role by a particular roleId after a cutoff date
+        // Fetch jobs count for a role by a particular roleId between a date range
         var jobPostingsCount = await _context.JobPostings
             .Where(jp => jp.RoleId == roleId && jp.DateScraped >= startDate && jp.DateScraped <= endDate)
             .CountAsync();

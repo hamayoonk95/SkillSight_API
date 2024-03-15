@@ -74,26 +74,39 @@ public class RoleMatchingController : ControllerBase
         // Fetches skills by role ID and groups them by category
         var roleSkills = await _context.RoleSkills
             .Where(rs => rs.RoleId == roleId)
-            .Include(rs => rs.Skill).ThenInclude(s => s.Type)
+            .Include(rs => rs.Skill)
+            .ThenInclude(s => s.Type)
             .ToListAsync();
 
-        return roleSkills
-            .GroupBy(rs => rs.Skill.Type)
-            .Select(group => new CategoryTopSkillsDTO
+        // Group skills by category
+        var groupedSkills = roleSkills.GroupBy(rs => rs.Skill.Type);
+
+        // Create a list to store the top skills per category
+        var topSkillsByCategory = new List<CategoryTopSkillsDTO>();
+        System.Console.WriteLine(groupedSkills);
+        // Iterate over each group (category) and select the top 3 skills
+        foreach (var group in groupedSkills)
+        {
+            var topSkills = group.OrderByDescending(rs => rs.Frequency)
+                .Take(3)
+                .Select(rs => new SkillDTO
+                {
+                    Id = rs.Skill.Id,
+                    SkillName = rs.Skill.SkillName,
+                    Type = new SkillTypeDTO
+                    {
+                        Id = rs.Skill.Type.Id,
+                        TypeName = rs.Skill.Type.TypeName
+                    }
+                }).ToList();
+
+            topSkillsByCategory.Add(new CategoryTopSkillsDTO
             {
                 Category = group.Key.TypeName,
-                Skills = group.OrderByDescending(rs => rs.Frequency)
-                              .Take(3)
-                              .Select(rs => new SkillDTO
-                              {
-                                  Id = rs.Skill.Id,
-                                  SkillName = rs.Skill.SkillName,
-                                  Type = new SkillTypeDTO
-                                  {
-                                      Id = rs.Skill.Type.Id,
-                                      TypeName = rs.Skill.Type.TypeName
-                                  }
-                              }).ToList()
-            }).ToList();
+                Skills = topSkills
+            });
+        }
+
+        return topSkillsByCategory;
     }
 }

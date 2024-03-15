@@ -28,6 +28,10 @@ public partial class RoleSkill
     [Column("frequency")]
     public int Frequency { get; set; }
 
+    // Date when skill is scraped
+    [Column("date_scraped", TypeName = "date")]
+    public DateTime DateScraped { get; set; }
+
     // Navigation property to the JobRole model
     [ForeignKey("RoleId")]
     [InverseProperty("RoleSkills")]

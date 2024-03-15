@@ -35,7 +35,7 @@ public partial class JobPosting
     public string? CompanyName { get; set; }
 
     // Date job scraped field 
-    [Column("date_scraped", TypeName = "datetime")]
+    [Column("date_scraped", TypeName = "date")]
     public DateTime DateScraped { get; set; }
 
     // ForeignKey attribute links 'RoleId' to the JobRole model
