@@ -52,9 +52,4 @@ public partial class User
     [ForeignKey("JobRoleId")]
     [InverseProperty("Users")]
     public virtual JobRole? JobRole { get; set; }
-
-    // Collection navigation property for Projects related to the User
-    [InverseProperty("User")]
-    public virtual ICollection<Project> Projects { get; } = new List<Project>();
-
 }

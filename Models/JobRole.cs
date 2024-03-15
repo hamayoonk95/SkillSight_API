@@ -28,10 +28,6 @@ public partial class JobRole
     [InverseProperty("JobRole")]
     public required virtual ICollection<User> Users { get; set; }
 
-    // Collection navigation property for Projects related to the JobRole
-    [InverseProperty("Role")]
-    public virtual ICollection<Project>? Projects { get; set; }
-
     // Collection navigation property for RoleSkills related to the JobRole
     [InverseProperty("Role")]
     public virtual ICollection<RoleSkill> RoleSkills { get; } = new List<RoleSkill>();
